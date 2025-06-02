@@ -337,6 +337,79 @@ h2 {
     text-align: center;
 }
 
+.auth-section {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.auth-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s, transform 0.2s;
+    margin-left: 8px;
+}
+
+.auth-btn.google {
+    background: #fff;
+    color: #333;
+    border: 1px solid #4285f4;
+}
+.auth-btn.google:hover {
+    background: #4285f4;
+    color: #fff;
+    transform: scale(1.05);
+}
+
+.auth-btn.github {
+    background: #24292f;
+    color: #fff;
+}
+.auth-btn.github:hover {
+    background: #444d56;
+    transform: scale(1.05);
+}
+
+.auth-btn.logout {
+    background: #dc3545;
+    color: #fff;
+}
+.auth-btn.logout:hover {
+    background: #a71d2a;
+    transform: scale(1.05);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: fadeIn 0.5s;
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--accent-color);
+    object-fit: cover;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.user-name {
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px);}
+    to { opacity: 1; transform: translateY(0);}
+}
+
+/* Media queries for responsive design */
 @media (max-width: 768px) {
     body {
         padding: 15px;
@@ -621,4 +694,134 @@ h2 {
     background-color: var(--bg-secondary);
     border-radius: 8px;
     box-shadow: var(--card-shadow);
+}
+
+.features-section {
+    margin-top: 32px;
+    text-align: left;
+    background: var(--bg-primary);
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    animation: fadeIn 0.7s;
+}
+.features-section h3 {
+    margin-bottom: 10px;
+    color: var(--accent-color);
+}
+.features-section ul, .features-section ol {
+    margin-left: 24px;
+    margin-bottom: 16px;
+}
+.features-section li {
+    margin-bottom: 8px;
+    font-size: 1.05rem;
+}
+
+.visited-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding: 8px 0;
+}
+.visited-header h3 {
+    font-size: 1.1rem;
+    color: var(--accent-color);
+    margin-right: 8px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+.visited-header .settings-button {
+    padding: 5px 12px;
+    font-size: 0.95rem;
+    border-radius: 5px;
+    margin: 0;
+    background: var(--accent-color);
+    color: #fff;
+    border: none;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+.visited-header .settings-button:hover {
+    background: #0056b3;
+    box-shadow: 0 2px 8px rgba(3,102,214,0.10);
+}
+.visited-card {
+    padding: 14px 14px 10px 38px;
+    min-height: 90px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border-color);
+    background: var(--bg-secondary);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: border 0.18s, box-shadow 0.18s;
+}
+.visited-card:hover {
+    border: 1.5px solid var(--accent-color);
+    box-shadow: 0 2px 10px rgba(3,102,214,0.10);
+    background: var(--hover-bg);
+}
+.visited-checkbox {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 2;
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent-color);
+}
+.visited-meta {
+    margin-top: 7px;
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+    display: flex;
+    gap: 10px;
+}
+.visited-date {
+    font-size: 0.85rem;
+    color: var(--accent-color);
+}
+
+.signin-page {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-primary);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+.signin-container {
+    background: var(--bg-secondary);
+    border-radius: 14px;
+    box-shadow: 0 4px 32px rgba(3,102,214,0.10);
+    padding: 48px 32px 32px 32px;
+    text-align: center;
+    min-width: 320px;
+    max-width: 90vw;
+    animation: fadeIn 0.7s;
+}
+.signin-container h2 {
+    font-size: 2rem;
+    color: var(--accent-color);
+    margin-bottom: 10px;
+}
+.signin-desc {
+    color: var(--text-secondary);
+    margin-bottom: 28px;
+    font-size: 1.1rem;
+}
+.signin-container .auth-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin: 10px 0;
+    font-size: 1.1rem;
+    padding: 12px 0;
+    border-radius: 8px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(3,102,214,0.06);
 }
