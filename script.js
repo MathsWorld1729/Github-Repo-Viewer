@@ -25,24 +25,19 @@ function showRepoSettings() {
     const currentContent = document.getElementById('repoContents').innerHTML;
     document.getElementById('repoContents').innerHTML = `
         <div class="settings-container">
-            <h3>Repository Settings</h3>
+            <h3>Add Repository</h3>
             <form id="repoSettingsForm" class="settings-form">
                 <div class="form-group">
-                    <label for="repoOwner">Repository Owner:</label>
-                    <input type="text" id="repoOwner" value="${config.repository.owner}" placeholder="e.g., username" required>
+                    <label for="repoLink">GitHub Repository Link:</label>
+                    <input type="url" id="repoLink" placeholder="e.g., https://github.com/owner/repo" required>
                 </div>
                 <div class="form-group">
-                    <label for="repoName">Repository Name:</label>
-                    <input type="text" id="repoName" value="${config.repository.name}" placeholder="e.g., my-repo" required>
-                </div>
-                <div class="form-group">
-                    <label for="repoBranch">Branch:</label>
-                    <input type="text" id="repoBranch" value="${config.repository.branch}" placeholder="e.g., main">
+                    <label for="repoImage">Custom Image Link (optional):</label>
+                    <input type="url" id="repoImage" placeholder="e.g., https://.../image.png">
                 </div>
                 <div class="form-actions">
-                    <button type="submit" class="settings-button">Save & Load</button>
+                    <button type="submit" class="settings-button">Add & Load</button>
                     <button type="button" class="settings-button cancel" onclick="loadRepo()">Cancel</button>
-                    <button type="button" class="settings-button clear" onclick="clearRepoFields()">Clear</button>
                 </div>
             </form>
         </div>
@@ -54,32 +49,33 @@ function showRepoSettings() {
     });
 }
 
-function clearRepoFields() {
-    document.getElementById('repoOwner').value = '';
-    document.getElementById('repoName').value = '';
-    document.getElementById('repoBranch').value = 'main';
-}
-
 function updateRepoSettings() {
-    const owner = document.getElementById('repoOwner').value.trim();
-    const name = document.getElementById('repoName').value.trim();
-    const branch = document.getElementById('repoBranch').value.trim();
-
-    if (owner && name) {
+    const repoLink = document.getElementById('repoLink').value.trim();
+    const imageLink = document.getElementById('repoImage').value.trim();
+    // Parse GitHub repo link
+    const match = repoLink.match(/github\.com\/(.+?)\/(.+?)(?:$|\/|\?|#)/);
+    if (match) {
+        const owner = match[1];
+        const name = match[2];
         config.repository.owner = owner;
         config.repository.name = name;
-        config.repository.branch = branch || 'main';
-
+        config.repository.branch = 'main';
         // Save settings to localStorage
         localStorage.setItem('repoConfig', JSON.stringify(config.repository));
-
-        // Save to Firestore
-        saveVisitedRepo(owner, name, branch);
-
-        // Reload repository contents
+        // Save to Firestore with image
+        saveVisitedRepo(owner, name, 'main', imageLink);
         loadRepo();
+    } else {
+        alert('Please enter a valid GitHub repository link.');
     }
 }
+
+function clearRepoFields() {
+    document.getElementById('repoLink').value = '';
+    document.getElementById('repoImage').value = '';
+}
+
+
 
 // Theme functions
 function initializeTheme() {
@@ -180,7 +176,7 @@ async function renderPDFPreview(url, container) {
 }
 
 async function loadRepo(path = '') {
-    const { owner, name, excludedFiles } = config.repository;
+    const { owner, name, branch, excludedFiles } = config.repository;
 
     // Show default page if no repository is configured
     if (!owner || !name) {
@@ -215,6 +211,9 @@ async function loadRepo(path = '') {
         `;
         return;
     }
+
+    // Save visited repo for logged-in user
+    saveVisitedRepo(owner, name, branch || 'main');
 
     const baseUrl = `https://${owner}.github.io/${name}`;
     const apiUrl = `https://api.github.com/repos/${owner}/${name}/contents/${path}`;
@@ -420,15 +419,25 @@ auth.onAuthStateChanged(async user => {
 });
 
 // Save visited repo to Firestore
-async function saveVisitedRepo(owner, name, branch) {
+async function saveVisitedRepo(owner, name, branch, imageLink) {
     const user = auth.currentUser;
     if (!user) return;
-    const repoId = `${owner}/${name}`;
+    const repoId = `${owner}__${name}`;
     const repoRef = db.collection('users').doc(user.uid).collection('visitedRepos').doc(repoId);
+    const doc = await repoRef.get();
+    if (doc.exists) {
+        // Optionally update timestamp or image if needed
+        await repoRef.set({
+            visitedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            ...(imageLink ? { image: imageLink } : {})
+        }, { merge: true });
+        return;
+    }
     await repoRef.set({
         owner,
         name,
         branch,
+        image: imageLink || '',
         visitedAt: firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
 }
@@ -477,9 +486,16 @@ async function showVisitedRepos() {
         cardsHtml += `<div class="error-container">No visited repositories yet.</div>`;
     } else {
         for (const repo of repoCards) {
+            let imageHtml = '';
+            if (repo.image && repo.image.trim() !== '') {
+                imageHtml = `<div class="visited-card-img"><img src="${repo.image}" alt="Repo Image" onerror="this.onerror=null;this.src='';this.parentNode.innerHTML=window.githubSVGPlaceholder"/></div>`;
+            } else {
+                imageHtml = `<div class="visited-card-img">${window.githubSVGPlaceholder}</div>`;
+            }
             cardsHtml += `
                 <div class="card visited-card" data-repoid="${repo.id}" onclick="loadVisitedRepo('${repo.owner}','${repo.name}','${repo.branch}')">
                     <input type="checkbox" class="visited-checkbox" onclick="event.stopPropagation();" data-repoid="${repo.id}">
+                    ${imageHtml}
                     <div class="card-title">
                         <span class="card-icon">📦</span>
                         <span>${repo.owner}/${repo.name}</span>
@@ -502,6 +518,8 @@ function loadVisitedRepo(owner, name, branch) {
     config.repository.name = name;
     config.repository.branch = branch || 'main';
     localStorage.setItem('repoConfig', JSON.stringify(config.repository));
+    // Save visited repo for logged-in user
+    saveVisitedRepo(owner, name, branch || 'main');
     loadRepo();
 }
 
@@ -525,6 +543,9 @@ async function deleteSelectedVisitedRepos() {
     }
     showVisitedRepos();
 }
+
+// Add GitHub SVG placeholder globally
+window.githubSVGPlaceholder = `<svg width='56' height='56' viewBox='0 0 98 96' fill='none' xmlns='http://www.w3.org/2000/svg' style='display:block;margin:auto;'><circle cx='49' cy='48' r='48' fill='#24292f'/><path fill-rule='evenodd' clip-rule='evenodd' d='M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.94-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.788 0 48.854 0z' fill='#fff'/></svg>`;
 
 // Initialize application
 function initializeApp() {

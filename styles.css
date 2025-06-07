@@ -747,29 +747,74 @@ h2 {
     box-shadow: 0 2px 8px rgba(3,102,214,0.10);
 }
 .visited-card {
-    padding: 14px 14px 10px 38px;
-    min-height: 90px;
-    border-radius: 10px;
-    border: 1.5px solid var(--border-color);
     background: var(--bg-secondary);
+    border-radius: 18px;
+    box-shadow: var(--card-shadow);
+    padding: 22px 18px 16px 18px;
+    margin: 12px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    transition: border 0.18s, box-shadow 0.18s;
+    align-items: center;
+    transition: transform 0.18s, box-shadow 0.18s;
+    border: 2px solid transparent;
+    position: relative;
+    min-width: 220px;
+    max-width: 260px;
+    min-height: 220px;
+    overflow: hidden;
 }
 .visited-card:hover {
-    border: 1.5px solid var(--accent-color);
-    box-shadow: 0 2px 10px rgba(3,102,214,0.10);
-    background: var(--hover-bg);
+    transform: translateY(-4px) scale(1.03);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    border-color: var(--accent-color);
+}
+.visited-card-img {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #24292f 60%, #0366d6 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 8px rgba(3,102,214,0.08);
+    overflow: hidden;
+}
+.visited-card-img img, .visited-card-img svg {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+}
+.visited-card .card-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    text-align: center;
+    word-break: break-all;
+}
+.visited-meta {
+    font-size: 0.98rem;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.visited-date {
+    font-size: 0.92rem;
+    color: var(--accent-color);
+    margin-top: 2px;
 }
 .visited-checkbox {
     position: absolute;
-    top: 14px;
-    left: 14px;
+    top: 12px;
+    left: 12px;
+    transform: scale(1.2);
     z-index: 2;
-    width: 16px;
-    height: 16px;
-    accent-color: var(--accent-color);
 }
 .visited-meta {
     margin-top: 7px;
